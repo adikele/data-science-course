@@ -2,43 +2,43 @@
 Solutions to Exercise 3
 
 Notes:
+For finding the Reliability Index:
+Step 1: 
+For a unique carrier ‘X’, find the average of the relevant delays for all of the (long-haul) flights for the unique carrier ‘X’
+The weather delay is scaled to account for mileage. If a carrier A flies a total of (long-haul) distances of x kms and another carrier B flies a total of (long-haul) distances of 2x, then Flight B’s weather delay is multiplied by 0.5
 
-REPORT on the Reliability Index
-Calculation of Reliability Index of (some) carrier A:
+Step 2:
+Calculate Reliability Index based on the average delays found in step 1
 
-Steps:
+Steps in detail:
+Step 1: 
 1. Find all concerned delays 
-(i) five types of long-haul flight  delays are included for calculating Reliability Index of a carrier: 
-'ArrDelayLonghaul', 'DepDelay', 'CarrierDelay', 'WeatherDelay', 'LateAircraftDelay	
-(ii) 'WeatherDelay' is scaled so as to depend on air distance
-(iii) ‘TotalDelay’  = 'ArrDelayLonghaul' + 'DepDelay' + 'CarrierDelay' + 'ScaledWeatherDelay' + 'LateAircraftDelay	
+(i) five types of long-haul flight delays are included for calculating Reliability Index of every unique carrier: 
+'ArrDelayLh', 'DepDelayLh', 'CarrierDelayLh', 'WeatherDelayLh', 'LateAircraftDelayLh’	
+(ii) For every unique carrier, 'WeatherDelayLh' is scaled so as to depend on the total long-haul flight distance ‘TotDistanceLh’ of that unique carrier
 
+(iii) ‘TotalDelayLh’  = 'ArrDelayLh' + 'DepDelayLh' + 'CarrierDelayLh' + 'ScaledWeatherDelayLh' + 'LateAircraftDelayLh’	
+
+(iv) grouped_df['AverageDelayLh'] = grouped_df['TotalDelayLh'] / grouped_df['NumOfFlightsLh']
 Dataframe is called grouped_df
 
+Step 2:
 2. Reliability Index scale is created and based on the following reference figures:
 
 MAX_RELIABILITY = 9.9
 MIN_RELIABILITY = 8.0
 
-Least ‘TotalDelay’ corresponds to reliability index 9.9
-Most ‘TotalDelay’ corresponds to reliability index 8.0
+least_average_delay = grouped_df['AverageDelayLh'].min()
+most_average_delay = grouped_df['AverageDelayLh'].max()
 
-LeastTotalDelay = grouped_df['TotalDelay'].min()
-MostTotalDelay = grouped_df['TotalDelay'].max()
-totaldelay_range = MostTotalDelay  - LeastTotalDelay
+least_average_delay → corresponds to a reliability index 9.9
+most_average_delay → corresponds to a reliability index 8.0
 
-Reliability_Index (of a carrier A) = MAX_RELIABILITY - ( (carrier A's total delay - LeastTotalDelay) * reliability_range / totaldelay_range)
+delay_range = most_average_delay  - least_average_delay
 
-Note: 
-1.  Dependence of Reliability Index on the total mileage covered per airline (long-haul flights only): 
-The weather delay is scaled to account for mileage. If a carrier A flies a total of (long-haul) distances of x kms and another carrier B flies a total of (long-haul) distances of 2x, then Flight B’s weather delay is multiplied by 0.5
+Reliability_Index (of a carrier A) = MAX_RELIABILITY - ( (carrier A's ‘AverageDelayLh’ - least_average_delay) * reliability_range / delay_range)
 
-2. Dependence of Reliability Index on the no of (long-haul) flights per airline:
-Could not understand: whether an airline makes a total of (let’s say) 100 long-haul flights or 200 long-haul flights, in what way could this number affect the reliability index?
-Currently, therefore, the no of (long-haul) flights IS NOT CONSIDERED for Reliability Index
-
-3. Dependence of Reliability Index on total delays (you are free to focus on the relevant types of delay)
-Described in Steps 1) above.
+REPORT: AQ is the most reliable airline with an index of 9.9.
 '''
 import pandas as pd
 import numpy as np
