@@ -9,9 +9,9 @@ Calculation of Reliability Index of (some) carrier A:
 Steps:
 1. Find all concerned delays 
 (i) five types of long-haul flight  delays are included for calculating Reliability Index of a carrier: 
-'ArrDelay', 'DepDelay', 'CarrierDelay', 'WeatherDelay', 'LateAircraftDelay	
+'ArrDelayLonghaul', 'DepDelay', 'CarrierDelay', 'WeatherDelay', 'LateAircraftDelay	
 (ii) 'WeatherDelay' is scaled so as to depend on air distance
-(iii) ‘TotalDelay’  = 'ArrDelay' + 'DepDelay' + 'CarrierDelay' + 'ScaledWeatherDelay' + 'LateAircraftDelay	
+(iii) ‘TotalDelay’  = 'ArrDelayLonghaul' + 'DepDelay' + 'CarrierDelay' + 'ScaledWeatherDelay' + 'LateAircraftDelay	
 
 Dataframe is called grouped_df
 
@@ -59,7 +59,11 @@ flights_df3 ['SerialNo'] = np.arange(len(flights_df3 ))
 first_col = flights_df3.pop('SerialNo')
 flights_df3.insert(0, 'SerialNo', first_col)
 flightskeyed_df = flights_df3
-print(flightskeyed_df.head())
+#print(flightskeyed_df.head())
+
+#removing Cancelled and Diverted flights
+flightskeyed_df = flightskeyed_df[flightskeyed_df.Cancelled!= 1]
+flightskeyed_df = flightskeyed_df[flightskeyed_df.Diverted!= 1]
 
 unique_carrier_list_orig = flightskeyed_df.UniqueCarrier.unique()
 carrier_list = [ ]
@@ -69,71 +73,71 @@ for x in unique_carrier_list_orig:
 avg_dist_longhaul_dict = {}
 tot_dist_longhaul_dict = {}
 tot_arr_delay_longhaul_dict = {}
-tot_dep_delay_dict = {}
-tot_carr_delay_dict = {}
-tot_late_delay_dict = {}
-tot_wea_delay_dict = {}
-tot_dist_dict  = {}
-num_of_flights_dict = {}
+tot_dep_delay_longhaul_dict = {}
+tot_carr_delay_longhaul_dict = {}
+tot_late_delay_longhaul_dict = {}
+tot_wea_delay_longhaul_dict = {}
 
 start_time = time.time()
 for x in carrier_list:
-    tot_arr_delay = flightskeyed_df.loc[ (flightskeyed_df['UniqueCarrier'] == x) & (flightskeyed_df['AirTime'] > 360), 'ArrDelay'].sum()    
+    tot_arr_delay_longhaul = flightskeyed_df.loc[ (flightskeyed_df['UniqueCarrier'] == x) & (flightskeyed_df['AirTime'] > 360), 'ArrDelay'].sum()    
+    tot_dep_delay_longhaul = flightskeyed_df.loc[(flightskeyed_df['UniqueCarrier'] == x) & (flightskeyed_df['AirTime'] > 360),  'DepDelay'].sum()
+    tot_carr_delay_longhaul = flightskeyed_df.loc[(flightskeyed_df['UniqueCarrier'] == x) & (flightskeyed_df['AirTime'] > 360),  'CarrierDelay'].sum()
+    tot_late_delay_longhaul = flightskeyed_df.loc[(flightskeyed_df['UniqueCarrier'] == x) & (flightskeyed_df['AirTime'] > 360),  'LateAircraftDelay'].sum()
+    tot_wea_delay_longhaul = flightskeyed_df.loc[(flightskeyed_df['UniqueCarrier'] == x) & (flightskeyed_df['AirTime'] > 360),  'WeatherDelay'].sum()    
+    #avg_dist_longhaul and tot_dist_longhaul is used for finding number of long-haul flights!
     avg_dist_longhaul = flightskeyed_df.loc[ (flightskeyed_df['UniqueCarrier'] == x) & (flightskeyed_df['AirTime'] > 360), 'Distance'].mean()
     tot_dist_longhaul = flightskeyed_df.loc[ (flightskeyed_df['UniqueCarrier'] == x) & (flightskeyed_df['AirTime'] > 360), 'Distance'].sum()
-    tot_dep_delay = flightskeyed_df.loc[(flightskeyed_df['UniqueCarrier'] == x) & (flightskeyed_df['AirTime'] > 360),  'DepDelay'].sum()
-    tot_carr_delay = flightskeyed_df.loc[(flightskeyed_df['UniqueCarrier'] == x) & (flightskeyed_df['AirTime'] > 360),  'CarrierDelay'].sum()
-    tot_late_delay = flightskeyed_df.loc[(flightskeyed_df['UniqueCarrier'] == x) & (flightskeyed_df['AirTime'] > 360),  'LateAircraftDelay'].sum()
-    tot_wea_delay = flightskeyed_df.loc[(flightskeyed_df['UniqueCarrier'] == x) & (flightskeyed_df['AirTime'] > 360),  'WeatherDelay'].sum()    
-    #tot_dist is used for finding number of flights!
-    tot_dist = flightskeyed_df.loc[flightskeyed_df['UniqueCarrier'] == x, 'Distance'].sum()
-       
-    tot_arr_delay_longhaul_dict [x] = tot_arr_delay
+           
+    tot_arr_delay_longhaul_dict [x] = tot_arr_delay_longhaul       
+    tot_dep_delay_longhaul_dict [x] = tot_dep_delay_longhaul
+    tot_carr_delay_longhaul_dict [x] = tot_carr_delay_longhaul
+    tot_late_delay_longhaul_dict [x] = tot_late_delay_longhaul
+    tot_wea_delay_longhaul_dict [x] = tot_wea_delay_longhaul
     avg_dist_longhaul_dict [x] = avg_dist_longhaul
-    tot_dist_longhaul_dict [x] = tot_dist_longhaul    
-    tot_dep_delay_dict [x] = tot_dep_delay
-    tot_carr_delay_dict [x] = tot_carr_delay
-    tot_late_delay_dict [x] = tot_late_delay
-    tot_wea_delay_dict [x] = tot_wea_delay
-    tot_dist_dict [x] = tot_dist
-    
+    tot_dist_longhaul_dict [x] = tot_dist_longhaul 
 
-avg_dist_list_longhaul = list(avg_dist_longhaul_dict.values())
-tot_dist_list_longhaul = list(tot_dist_longhaul_dict.values()) 
-# A total of 5 delays. but only 4 delays here because "ArrDelay" goes in the making of the df 
-tot_carr_delay_list = list(tot_carr_delay_dict.values())
-tot_late_delay_list = list(tot_late_delay_dict.values())
-tot_wea_delay_list = list(tot_wea_delay_dict.values())
-tot_dep_delay_list = list(tot_dep_delay_dict.values())
-tot_num_of_flights_longhaul = [ tot/avg for tot,avg in zip(tot_dist_list_longhaul, avg_dist_list_longhaul)]
+avg_dist_longhaul_list = list(avg_dist_longhaul_dict.values())
+tot_dist_longhaul_list = list(tot_dist_longhaul_dict.values()) 
+# A total of 5 delays. but only 4 delays here because "ArrDelayLonghaul" goes in the making of the df 
+tot_carr_delay_longhaul_list = list(tot_carr_delay_longhaul_dict.values())
+tot_late_delay_longhaul_list = list(tot_late_delay_longhaul_dict.values())
+tot_wea_delay_longhaul_list = list(tot_wea_delay_longhaul_dict.values())
+tot_dep_delay_longhaul_list = list(tot_dep_delay_longhaul_dict.values())
+tot_num_of_flights_longhaul = [ tot/avg for tot,avg in zip(tot_dist_longhaul_list, avg_dist_longhaul_list)]
 
 #creating a new dataframe
 grouped_df = pd.DataFrame( list(tot_arr_delay_longhaul_dict.items()) )  
-grouped_df.columns =['UniqueCarrier', 'ArrDelay']
-grouped_df['NumOfFlights'] = tot_num_of_flights_longhaul
-grouped_df['DepDelay'] = tot_dep_delay_list
-grouped_df['CarrierDelay'] = tot_carr_delay_list 
-grouped_df['LateAircraftDelay'] = tot_late_delay_list 
-grouped_df['TotWeatherDelay'] = tot_wea_delay_list 
-grouped_df['TotDistance'] = tot_dist_list_longhaul 
+grouped_df.columns =['UniqueCarrier', 'ArrDelayLh']
+grouped_df['NumOfFlightsLh'] = tot_num_of_flights_longhaul
+grouped_df['DepDelayLh'] = tot_dep_delay_longhaul_list
+grouped_df['CarrierDelayLh'] = tot_carr_delay_longhaul_list 
+grouped_df['LateAircraftDelayLh'] = tot_late_delay_longhaul_list 
+grouped_df['TotWeatherDelayLh'] = tot_wea_delay_longhaul_list 
+grouped_df['TotDistanceLh'] = tot_dist_longhaul_list 
 
 #clearing the df of carriers with zero long-haul flights
 grouped_df = grouped_df.dropna()
 
-LeastTotalDistance = grouped_df['TotDistance'].min()
-scaled_wea_delay_list = grouped_df['TotWeatherDelay'] * LeastTotalDistance / grouped_df['TotDistance']
-grouped_df['ScaledWeatherDelay']  = grouped_df['TotWeatherDelay'] * LeastTotalDistance / grouped_df['TotDistance']  #didn't work
+#to create a "Scaled Weather Delay" column
+least_total_distance = grouped_df['TotDistanceLh'].min()
+scaled_wea_delay_list = grouped_df['TotWeatherDelayLh'] * least_total_distance / grouped_df['TotDistanceLh']
+grouped_df['ScaledWeatherDelayLh']  = grouped_df['TotWeatherDelayLh'] * least_total_distance / grouped_df['TotDistanceLh']  
 
-grouped_df['TotalDelay']  = grouped_df['TotWeatherDelay'] + grouped_df['DepDelay'] + grouped_df['CarrierDelay'] + grouped_df['LateAircraftDelay'] + grouped_df['ArrDelay']  
+grouped_df['TotalDelayLh']  = grouped_df['ScaledWeatherDelayLh'] + grouped_df['DepDelayLh'] + grouped_df['CarrierDelayLh'] + grouped_df['LateAircraftDelayLh'] + grouped_df['ArrDelayLh']  
 
-LeastTotalDelay = grouped_df['TotalDelay'].min()
-MostTotalDelay = grouped_df['TotalDelay'].max()
-totaldelay_range = MostTotalDelay  - LeastTotalDelay
+#finding average delay for each unique carrier
+grouped_df['AverageDelayLh'] = grouped_df['TotalDelayLh'] / grouped_df['NumOfFlightsLh']
+
+least_average_delay = grouped_df['AverageDelayLh'].min()
+most_average_delay = grouped_df['AverageDelayLh'].max()
+delay_range = most_average_delay  - least_average_delay
 
 reliability_range = MAX_RELIABILITY - MIN_RELIABILITY 
-grouped_df['ReliabilityIndex'] = MAX_RELIABILITY - ( (grouped_df['TotalDelay'] - LeastTotalDelay) * reliability_range / totaldelay_range)
-#(a) REPORT 
-print (grouped_df)
+grouped_df['ReliabilityIndex'] = MAX_RELIABILITY - ( (grouped_df['AverageDelayLh'] - least_average_delay) * reliability_range / delay_range)
+#(a) REPORT Table showing the total no of long-haul flights per each airline
+print (grouped_df[['UniqueCarrier','NumOfFlightsLh']])
 
-#(b) REPORT The primary type of delay for long-haul flights appers to be "ArrDelay"
+print (grouped_df)
+#(b) REPORT The primary type of delay for long-haul flights appers to be "ArrDelayLongh"
 print("--- %s seconds ---" % (time.time() - start_time))  # prints --- 22.66365909576416 seconds ---
